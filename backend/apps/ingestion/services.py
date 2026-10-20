@@ -108,19 +108,20 @@ def process_import_job(job_id):
     Executes row-by-row streaming ingestion against schema specifications.
     Uses database row locking on ImportJob to prevent concurrent processing races.
     """
-    with transaction.atomic():
-        try:
-            job = ImportJob.objects.select_for_update(nowait=True).get(id=job_id)
-        except Exception:
-            # Job is already locked by another worker process
-            return None
+    from apps.workflows.services import transition_job_state
 
-        if job.status not in (ImportJob.Status.QUEUED, ImportJob.Status.FAILED, ImportJob.Status.COMPLETED_WITH_ERRORS):
-            return job
-
-        job.status = ImportJob.Status.PROCESSING
-        job.started_at = timezone.now()
-        job.save(update_fields=["status", "started_at", "updated_at"])
+    # Lock and transition to PROCESSING
+    try:
+        job, _ = transition_job_state(
+            job_id,
+            ImportJob.Status.PROCESSING,
+            event_type="PROCESSING_STARTED",
+            metadata={"source": "worker"},
+        )
+    except Exception:
+        # If job is already processing or in an incompatible state, exit safely
+        job = ImportJob.objects.filter(id=job_id).first()
+        return job
 
     # Locate uploaded file
     file_dir = os.path.join(settings.MEDIA_ROOT, "uploads", str(job.organization_id))
@@ -239,46 +240,77 @@ def process_import_job(job_id):
                         ImportRowError.objects.bulk_create(errors_to_create, batch_size=BATCH_SIZE)
                         errors_to_create = []
 
-        # Final flush
+        # Final flush of remaining records and errors outside the loop
         with transaction.atomic():
             if records_to_create:
                 ImportedRecord.objects.bulk_create(records_to_create, batch_size=BATCH_SIZE)
             if errors_to_create:
                 ImportRowError.objects.bulk_create(errors_to_create, batch_size=BATCH_SIZE)
 
-        # Update final state
+        # Update final state via state machine
         if failed_rows == 0:
             final_status = ImportJob.Status.COMPLETED
+            event_type = "PROCESSING_COMPLETED"
         elif successful_rows > 0:
             final_status = ImportJob.Status.COMPLETED_WITH_ERRORS
+            event_type = "PROCESSING_COMPLETED_WITH_ERRORS"
         else:
             final_status = ImportJob.Status.FAILED
+            event_type = "PROCESSING_FAILED"
 
         job.total_rows = total_rows
         job.processed_rows = processed_rows
         job.successful_rows = successful_rows
         job.failed_rows = failed_rows
-        job.status = final_status
-        job.completed_at = timezone.now()
         job.save(
             update_fields=[
                 "total_rows",
                 "processed_rows",
                 "successful_rows",
                 "failed_rows",
-                "status",
-                "completed_at",
                 "updated_at",
             ]
         )
 
+        transition_job_state(
+            job.id,
+            final_status,
+            event_type=event_type,
+            metadata={
+                "total_rows": total_rows,
+                "successful_rows": successful_rows,
+                "failed_rows": failed_rows,
+            },
+        )
+        job.refresh_from_db()
         return job
 
     except Exception as e:
-        job.status = ImportJob.Status.FAILED
+        job.total_rows = total_rows
+        job.processed_rows = processed_rows
+        job.successful_rows = successful_rows
+        job.failed_rows = failed_rows
         job.error_summary = f"Fatal ingestion exception: {str(e)}"
-        job.completed_at = timezone.now()
-        job.save(update_fields=["status", "error_summary", "completed_at", "updated_at"])
+        job.save(
+            update_fields=[
+                "total_rows",
+                "processed_rows",
+                "successful_rows",
+                "failed_rows",
+                "error_summary",
+                "updated_at",
+            ]
+        )
+        try:
+            transition_job_state(
+                job.id,
+                ImportJob.Status.FAILED,
+                event_type="FATAL_EXCEPTION",
+                metadata={"error": str(e)},
+            )
+        except Exception:
+            pass
+        job.refresh_from_db()
         return job
 
 
@@ -287,19 +319,17 @@ def retry_import_job(job_id, user):
     Initiates an idempotent retry for a job that failed or completed with errors.
     Cleans up old row errors and re-triggers processing safely.
     """
-    with transaction.atomic():
-        job = ImportJob.objects.select_for_update().get(id=job_id)
-        if job.status not in (ImportJob.Status.FAILED, ImportJob.Status.COMPLETED_WITH_ERRORS):
-            raise ValidationError(f"Job in state '{job.status}' is not eligible for retry.")
+    from apps.workflows.services import transition_job_state
 
-        # Clear existing row errors from previous attempt
-        ImportRowError.objects.filter(import_job=job).delete()
+    # Clear existing row errors from previous attempt
+    ImportRowError.objects.filter(import_job_id=job_id).delete()
 
-        job.status = ImportJob.Status.QUEUED
-        job.started_at = None
-        job.completed_at = None
-        job.error_summary = f"Retry initiated by {user.email} at {timezone.now().isoformat()}"
-        job.save(update_fields=["status", "started_at", "completed_at", "error_summary", "updated_at"])
+    job, _ = transition_job_state(
+        job_id,
+        ImportJob.Status.QUEUED,
+        event_type="RETRY_TRIGGERED",
+        metadata={"user": user.email},
+    )
 
     # Trigger processing synchronously or asynchronously
     return process_import_job(job.id)
