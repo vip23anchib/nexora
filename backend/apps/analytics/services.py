@@ -2,8 +2,7 @@ from datetime import timedelta
 
 from apps.ingestion.models import ImportJob, ImportRowError
 from apps.schemas.models import DatasetSchema
-from django.db import models
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Q, Sum
 from django.utils import timezone
 
 
@@ -19,9 +18,9 @@ def get_dashboard_analytics(organization):
         failed_jobs=Count("id", filter=Q(status=ImportJob.Status.FAILED)),
         partial_jobs=Count("id", filter=Q(status=ImportJob.Status.COMPLETED_WITH_ERRORS)),
         processing_jobs=Count("id", filter=Q(status=ImportJob.Status.PROCESSING)),
-        total_records_sum=models.Sum("total_rows"),
-        successful_records_sum=models.Sum("successful_rows"),
-        failed_records_sum=models.Sum("failed_rows"),
+        total_records_sum=Sum("total_rows"),
+        successful_records_sum=Sum("successful_rows"),
+        failed_records_sum=Sum("failed_rows"),
     )
 
     total_jobs = aggregates["total_jobs"] or 0
