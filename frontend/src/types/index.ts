@@ -31,10 +31,13 @@ export type FieldType = 'string' | 'integer' | 'decimal' | 'boolean' | 'date' | 
 
 export interface DatasetField {
   id?: string;
-  name: string;
+  field_name?: string;
+  name?: string;
   field_type: FieldType;
   is_required: boolean;
   is_unique: boolean;
+  position?: number;
+  order?: number;
   validation_rules?: {
     min_length?: number;
     max_length?: number;
@@ -42,15 +45,16 @@ export interface DatasetField {
     max_value?: number;
     regex?: string;
   };
-  order: number;
 }
 
 export interface DatasetSchema {
   id: string;
   name: string;
+  slug: string;
   description: string;
   version: number;
-  is_active: boolean;
+  status: 'draft' | 'active' | 'deprecated';
+  is_active?: boolean;
   fields: DatasetField[];
   created_at: string;
   updated_at: string;
@@ -66,27 +70,48 @@ export interface DataSource {
   updated_at: string;
 }
 
-export type JobStatus = 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'COMPLETED_WITH_ERRORS' | 'FAILED' | 'CANCELLED';
+export type JobStatus =
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'completed_with_errors'
+  | 'failed'
+  | 'cancelled'
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'COMPLETED_WITH_ERRORS'
+  | 'FAILED'
+  | 'CANCELLED';
 
 export interface IngestionJob {
   id: string;
   organization: string;
-  schema: string;
+  dataset_schema: string;
+  schema?: string;
   schema_name?: string;
+  schema_version?: number;
   data_source?: string;
   data_source_name?: string;
+  created_by?: string;
+  created_by_email?: string;
   file_name: string;
-  file_size_bytes: number;
+  file_size?: number;
+  file_size_bytes?: number;
+  checksum?: string;
+  idempotency_key?: string;
   status: JobStatus;
-  idempotency_key: string;
   total_rows: number;
   processed_rows: number;
   successful_rows: number;
-  error_rows: number;
-  created_at: string;
+  failed_rows: number;
+  error_rows?: number;
   started_at?: string;
   completed_at?: string;
+  duration_seconds?: number;
   error_summary?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface ImportRowError {
@@ -95,15 +120,20 @@ export interface ImportRowError {
   field_name: string;
   error_code: string;
   error_message: string;
-  raw_value: string;
+  raw_value?: string;
+  created_at?: string;
 }
 
 export interface ImportedRecord {
   id: string;
   external_id: string;
-  schema: string;
+  dataset_schema?: string;
+  schema?: string;
   schema_name?: string;
+  source_job?: string;
+  source_row_number?: number;
   payload: Record<string, any>;
+  data?: Record<string, any>;
   record_hash: string;
   created_at: string;
   updated_at: string;
@@ -111,7 +141,12 @@ export interface ImportedRecord {
 
 export interface AuditLog {
   id: string;
-  actor_email: string;
+  actor_email?: string;
+  actor?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+  };
   action: string;
   resource_type: string;
   resource_id: string;
@@ -130,17 +165,29 @@ export interface Notification {
 }
 
 export interface DashboardMetrics {
-  total_records: number;
   total_jobs: number;
-  success_rate_percent: number;
-  error_rows_count: number;
+  successful_jobs: number;
+  failed_jobs: number;
+  partial_jobs: number;
+  processing_jobs: number;
+  total_records: number;
+  successful_records: number;
+  failed_records: number;
+  validation_failure_rate: number;
+  avg_duration_seconds: number;
   active_schemas_count: number;
   recent_jobs: IngestionJob[];
+  // Fallbacks / aliases
+  success_rate_percent?: number;
+  error_rows_count?: number;
 }
 
 export interface IngestionTrendItem {
   date: string;
-  total_jobs: number;
-  successful_rows: number;
-  error_rows: number;
+  jobs_count: number;
+  successful_records: number;
+  failed_records: number;
+  // Aliases for chart
+  successful_rows?: number;
+  error_rows?: number;
 }

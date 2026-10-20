@@ -166,12 +166,12 @@ export const Schemas: React.FC = () => {
                   <span className="text-emerald-400 font-sans">Active</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                  {schema.fields?.map((f) => (
+                  {schema.fields?.map((f, i) => (
                     <span
-                      key={f.name}
+                      key={f.field_name || f.name || i}
                       className="px-2 py-1 rounded-md bg-slate-800/80 text-[11px] font-mono text-slate-300 border border-slate-700/60"
                     >
-                      {f.name}:{' '}
+                      {f.field_name || f.name}:{' '}
                       <span className="text-sky-400 font-semibold">{f.field_type}</span>
                       {f.is_required && <span className="text-rose-400 ml-0.5">*</span>}
                     </span>
@@ -192,12 +192,13 @@ export const Schemas: React.FC = () => {
                   // prefill template json
                   const sampleObj: Record<string, any> = {};
                   schema.fields?.forEach((f) => {
-                    if (f.field_type === 'integer') sampleObj[f.name] = 100;
-                    else if (f.field_type === 'decimal') sampleObj[f.name] = 49.99;
-                    else if (f.field_type === 'boolean') sampleObj[f.name] = true;
-                    else if (f.field_type === 'email') sampleObj[f.name] = 'user@example.com';
-                    else if (f.field_type === 'date') sampleObj[f.name] = '2026-01-15';
-                    else sampleObj[f.name] = `demo_${f.name}`;
+                    const fname = f.field_name || f.name || 'field';
+                    if (f.field_type === 'integer') sampleObj[fname] = 100;
+                    else if (f.field_type === 'decimal') sampleObj[fname] = 49.99;
+                    else if (f.field_type === 'boolean') sampleObj[fname] = true;
+                    else if (f.field_type === 'email') sampleObj[fname] = 'user@example.com';
+                    else if (f.field_type === 'date') sampleObj[fname] = '2026-01-15';
+                    else sampleObj[fname] = `demo_${fname}`;
                   });
                   setSamplePayload(JSON.stringify(sampleObj, null, 2));
                 }}

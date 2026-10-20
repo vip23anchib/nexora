@@ -58,6 +58,12 @@ class Command(BaseCommand):
 
         # 3. Users & Memberships for Acme Logistics
         acme_users = [
+            # Primary Nexora personas
+            ("admin@nexora.io", "Alex", "Vance", OrganizationMembership.Role.ORG_ADMIN),
+            ("operator@nexora.io", "Oscar", "Perez", OrganizationMembership.Role.OPERATOR),
+            ("analyst@nexora.io", "Anna", "Kim", OrganizationMembership.Role.ANALYST),
+            ("viewer@nexora.io", "Victor", "Stone", OrganizationMembership.Role.VIEWER),
+            # Alias Acme personas
             ("admin@acme.io", "Alice", "Vance", OrganizationMembership.Role.ORG_ADMIN),
             ("operator@acme.io", "Oscar", "Perez", OrganizationMembership.Role.OPERATOR),
             ("analyst@acme.io", "Anna", "Kim", OrganizationMembership.Role.ANALYST),
@@ -69,7 +75,7 @@ class Command(BaseCommand):
                 email=email,
                 defaults={"first_name": first, "last_name": last},
             )
-            u.set_password("NexoraAdmin2026!" if role == "org_admin" else "NexoraDemo2026!")
+            u.set_password("NexoraSecurePass123!")
             u.save()
             OrganizationMembership.objects.update_or_create(
                 organization=org_acme,
@@ -87,7 +93,7 @@ class Command(BaseCommand):
                 email=email,
                 defaults={"first_name": first, "last_name": last},
             )
-            u.set_password("NexoraAdmin2026!")
+            u.set_password("NexoraSecurePass123!")
             u.save()
             OrganizationMembership.objects.update_or_create(
                 organization=org_nova,
