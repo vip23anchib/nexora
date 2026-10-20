@@ -45,9 +45,7 @@ def custom_exception_handler(exc, context):
                 "success": False,
                 "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "message": "An internal server error occurred.",
-                "errors": {
-                    "server_error": ["Please contact support if this issue persists."]
-                },
+                "errors": {"server_error": ["Please contact support if this issue persists."]},
                 "request_id": request_id,
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,

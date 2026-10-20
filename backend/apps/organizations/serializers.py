@@ -54,15 +54,8 @@ class AddMemberSerializer(serializers.Serializer):
         org = self.context["organization"]
         email = attrs["email"].lower().strip()
         user = User.objects.filter(email=email).first()
-        if (
-            user
-            and OrganizationMembership.objects.filter(
-                organization=org, user=user
-            ).exists()
-        ):
-            raise serializers.ValidationError(
-                {"email": "This user is already a member of the organization."}
-            )
+        if user and OrganizationMembership.objects.filter(organization=org, user=user).exists():
+            raise serializers.ValidationError({"email": "This user is already a member of the organization."})
         return attrs
 
     @transaction.atomic

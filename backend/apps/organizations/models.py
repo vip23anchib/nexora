@@ -91,6 +91,4 @@ class OrganizationMembership(models.Model):
                     .count()
                 )
                 if remaining_admins == 0:
-                    raise ValidationError(
-                        "Cannot demote or deactivate the last administrator of the organization."
-                    )
+                    raise ValidationError("Cannot demote or deactivate the last administrator of the organization.")

@@ -31,17 +31,13 @@ def organization_factory(db):
 @pytest.fixture
 def membership_factory(db):
     def create_membership(organization, user, role="org_admin", **kwargs):
-        return OrganizationMembership.objects.create(
-            organization=organization, user=user, role=role, **kwargs
-        )
+        return OrganizationMembership.objects.create(organization=organization, user=user, role=role, **kwargs)
 
     return create_membership
 
 
 @pytest.fixture
-def authenticated_client(
-    api_client, user_factory, organization_factory, membership_factory
-):
+def authenticated_client(api_client, user_factory, organization_factory, membership_factory):
     """Provides an APIClient authenticated as an Org Admin of Org Alpha."""
     user = user_factory(email="admin@alpha.io", first_name="Alpha", last_name="Admin")
     org = organization_factory(name="Org Alpha", slug="org-alpha")

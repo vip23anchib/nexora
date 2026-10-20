@@ -51,11 +51,15 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
-    path(
-        "api/v1/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"
-    ),
+    path("api/v1/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Authentication & Accounts
     path("api/v1/auth/", include("apps.accounts.urls")),
     # Organizations & Memberships
     path("api/v1/organization/", include("apps.organizations.urls")),
+    # Schemas
+    path("api/v1/schemas/", include("apps.schemas.urls")),
+    # Data Sources
+    path("api/v1/data-sources/", include("apps.datasources.urls")),
+    # Records Explorer
+    path("api/v1/records/", include("apps.records.urls")),
 ]

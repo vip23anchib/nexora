@@ -17,9 +17,7 @@ def test_create_user(user_factory):
 
 
 @pytest.mark.django_db
-def test_user_login_success(
-    api_client, user_factory, organization_factory, membership_factory
-):
+def test_user_login_success(api_client, user_factory, organization_factory, membership_factory):
     user = user_factory(email="operator@nexora.io", password="securepassword123")
     org = organization_factory(name="Acme Logistics", slug="acme-logistics")
     membership_factory(organization=org, user=user, role="operator")
@@ -43,9 +41,7 @@ def test_user_login_success(
 def test_user_login_invalid_credentials(api_client, user_factory):
     user_factory(email="analyst@nexora.io", password="validpassword")
     url = reverse("accounts:login")
-    response = api_client.post(
-        url, {"email": "analyst@nexora.io", "password": "wrongpassword"}, format="json"
-    )
+    response = api_client.post(url, {"email": "analyst@nexora.io", "password": "wrongpassword"}, format="json")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 

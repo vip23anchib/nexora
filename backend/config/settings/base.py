@@ -10,13 +10,9 @@ load_dotenv()
 # Build paths inside the project: BASE_DIR is backend/
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY", "nexora-development-insecure-key-2026-super-secret"
-)
+SECRET_KEY = os.getenv("SECRET_KEY", "nexora-development-insecure-key-2026-super-secret")
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
-ALLOWED_HOSTS = [
-    host.strip() for host in os.getenv("ALLOWED_HOSTS", "*").split(",") if host.strip()
-]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "*").split(",") if host.strip()]
 
 # Custom User Model
 AUTH_USER_MODEL = "accounts.User"
@@ -117,9 +113,7 @@ else:
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {"min_length": 8},
@@ -162,12 +156,8 @@ REST_FRAMEWORK = {
 
 # Simple JWT
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "60"))
-    ),
-    "REFRESH_TOKEN_LIFETIME": timedelta(
-        days=int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", "7"))
-    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "60"))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", "7"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
@@ -180,9 +170,7 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-    ).split(",")
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
     if origin.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -203,12 +191,12 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_ALWAYS_EAGER = os.getenv(
-    "CELERY_TASK_ALWAYS_EAGER", "True" if DEBUG else "False"
-).lower() in ("true", "1", "yes")
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "True" if DEBUG else "False").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # File Upload Constraints
-MAX_UPLOAD_SIZE_BYTES = int(
-    os.getenv("MAX_UPLOAD_SIZE_BYTES", str(10 * 1024 * 1024))
-)  # 10MB
+MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(10 * 1024 * 1024)))  # 10MB

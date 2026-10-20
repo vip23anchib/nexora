@@ -4,10 +4,7 @@ DEBUG = True
 
 # In development, ensure SQLite can be used smoothly if local PostgreSQL is unavailable
 try:
-    if (
-        not USE_SQLITE
-        and DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
-    ):
+    if not USE_SQLITE and DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
         import psycopg2
 
         conn = psycopg2.connect(

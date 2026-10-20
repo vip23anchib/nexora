@@ -55,11 +55,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Determine default active tenant
         default_membership = memberships.first()
-        active_org = (
-            OrganizationBriefSerializer(default_membership.organization).data
-            if default_membership
-            else None
-        )
+        active_org = OrganizationBriefSerializer(default_membership.organization).data if default_membership else None
         active_role = default_membership.role if default_membership else None
 
         data["user"] = UserSerializer(user).data

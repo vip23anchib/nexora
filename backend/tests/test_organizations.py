@@ -42,9 +42,7 @@ def test_update_organization_settings_forbidden_for_viewer(
     membership_factory(organization=org, user=user, role="viewer")
 
     token = str(RefreshToken.for_user(user).access_token)
-    api_client.credentials(
-        HTTP_AUTHORIZATION=f"Bearer {token}", HTTP_X_ORGANIZATION_ID=str(org.id)
-    )
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}", HTTP_X_ORGANIZATION_ID=str(org.id))
 
     url = reverse("organizations:organization-detail")
     response = api_client.patch(url, {"description": "Malicious edit"}, format="json")
@@ -78,9 +76,7 @@ def test_cannot_delete_last_admin(authenticated_client):
     client = authenticated_client["client"]
     membership = authenticated_client["membership"]
 
-    url = reverse(
-        "organizations:organization-members-detail", kwargs={"pk": membership.id}
-    )
+    url = reverse("organizations:organization-members-detail", kwargs={"pk": membership.id})
     response = client.delete(url)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -88,9 +84,7 @@ def test_cannot_delete_last_admin(authenticated_client):
 
 
 @pytest.mark.django_db
-def test_cross_tenant_member_access_isolation(
-    api_client, user_factory, organization_factory, membership_factory
-):
+def test_cross_tenant_member_access_isolation(api_client, user_factory, organization_factory, membership_factory):
     # Org A
     user_a = user_factory(email="admin@a.io")
     org_a = organization_factory(name="Org A", slug="org-a")
@@ -103,14 +97,10 @@ def test_cross_tenant_member_access_isolation(
 
     # Authenticate as Org A
     token_a = str(RefreshToken.for_user(user_a).access_token)
-    api_client.credentials(
-        HTTP_AUTHORIZATION=f"Bearer {token_a}", HTTP_X_ORGANIZATION_ID=str(org_a.id)
-    )
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token_a}", HTTP_X_ORGANIZATION_ID=str(org_a.id))
 
     # Attempt to delete Org B's member
-    url = reverse(
-        "organizations:organization-members-detail", kwargs={"pk": membership_b.id}
-    )
+    url = reverse("organizations:organization-members-detail", kwargs={"pk": membership_b.id})
     response = api_client.delete(url)
 
     # Must be 404 Not Found to prevent ID enumeration across tenants

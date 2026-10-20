@@ -44,9 +44,7 @@ class MeView(views.APIView):
             {
                 "user": UserSerializer(user).data,
                 "memberships": MembershipBriefSerializer(memberships, many=True).data,
-                "active_organization": OrganizationBriefSerializer(active_org).data
-                if active_org
-                else None,
+                "active_organization": OrganizationBriefSerializer(active_org).data if active_org else None,
                 "active_role": active_membership.role if active_membership else None,
             }
         )
@@ -82,9 +80,7 @@ class LogoutView(views.APIView):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(
-                {"message": "Successfully logged out."}, status=status.HTTP_200_OK
-            )
+            return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Exception:
             return Response(
                 {"error": "Invalid or expired token."},

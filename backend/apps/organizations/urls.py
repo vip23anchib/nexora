@@ -6,9 +6,7 @@ from .views import OrganizationDetailView, OrganizationMembershipViewSet
 app_name = "organizations"
 
 router = DefaultRouter()
-router.register(
-    r"members", OrganizationMembershipViewSet, basename="organization-members"
-)
+router.register(r"members", OrganizationMembershipViewSet, basename="organization-members")
 
 urlpatterns = [
     path("", OrganizationDetailView.as_view(), name="organization-detail"),

@@ -36,13 +36,8 @@ class OrganizationDetailView(TenantContextMixin, views.APIView):
         responses={200: OrganizationSerializer},
     )
     def patch(self, request):
-        if (
-            not request.membership
-            or request.membership.role != OrganizationMembership.Role.ORG_ADMIN
-        ):
-            raise PermissionDenied(
-                "Only organization administrators can update settings."
-            )
+        if not request.membership or request.membership.role != OrganizationMembership.Role.ORG_ADMIN:
+            raise PermissionDenied("Only organization administrators can update settings.")
         tenant = request.tenant
         serializer = OrganizationSerializer(tenant, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -74,9 +69,7 @@ class OrganizationMembershipViewSet(TenantContextMixin, viewsets.ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        serializer = AddMemberSerializer(
-            data=request.data, context={"organization": request.tenant}
-        )
+        serializer = AddMemberSerializer(data=request.data, context={"organization": request.tenant})
         serializer.is_valid(raise_exception=True)
         membership = serializer.save()
         return Response(
@@ -87,9 +80,7 @@ class OrganizationMembershipViewSet(TenantContextMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = UpdateMemberSerializer(
-            instance, data=request.data, partial=partial
-        )
+        serializer = UpdateMemberSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         membership = serializer.save()
         return Response(OrganizationMembershipSerializer(membership).data)
@@ -97,10 +88,7 @@ class OrganizationMembershipViewSet(TenantContextMixin, viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         # Ensure last admin cannot be deleted
-        if (
-            instance.role == OrganizationMembership.Role.ORG_ADMIN
-            and instance.is_active
-        ):
+        if instance.role == OrganizationMembership.Role.ORG_ADMIN and instance.is_active:
             remaining = (
                 OrganizationMembership.objects.filter(
                     organization=instance.organization,
@@ -112,9 +100,7 @@ class OrganizationMembershipViewSet(TenantContextMixin, viewsets.ModelViewSet):
             )
             if remaining == 0:
                 return Response(
-                    {
-                        "detail": "Cannot remove the last administrator of the organization."
-                    },
+                    {"detail": "Cannot remove the last administrator of the organization."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         instance.delete()
