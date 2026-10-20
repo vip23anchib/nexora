@@ -21,6 +21,7 @@ def analytics_data(authenticated_client):
         created_by=user,
     )
     from apps.schemas.models import DatasetField
+
     DatasetField.objects.create(
         dataset_schema=schema,
         field_name="code",
