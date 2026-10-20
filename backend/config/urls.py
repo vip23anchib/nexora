@@ -60,6 +60,8 @@ urlpatterns = [
     path("api/v1/schemas/", include("apps.schemas.urls")),
     # Data Sources
     path("api/v1/data-sources/", include("apps.datasources.urls")),
+    # Ingestion Jobs
+    path("api/v1/ingestion/", include("apps.ingestion.urls")),
     # Records Explorer
     path("api/v1/records/", include("apps.records.urls")),
 ]
