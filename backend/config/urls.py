@@ -66,4 +66,12 @@ urlpatterns = [
     path("api/v1/workflows/", include("apps.workflows.urls")),
     # Records Explorer
     path("api/v1/records/", include("apps.records.urls")),
+    # Operational Analytics
+    path("api/v1/analytics/", include("apps.analytics.urls")),
+    # Audit Trail
+    path("api/v1/audit-events/", include("apps.audit.urls")),
+    # Notifications
+    path("api/v1/notifications/", include("apps.notifications.urls")),
+    # Exports
+    path("api/v1/exports/", include("apps.common.export_urls")),
 ]
