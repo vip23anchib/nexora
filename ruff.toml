@@ -1,0 +1,15 @@
+# Ruff configuration for Nexora
+
+target-version = "py312"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501", # line length handled by formatter
+    "RUF012", # mutable class attributes common in Django models/serializers/views
+]
+
+[lint.per-file-ignores]
+"**/migrations/*" = ["E501", "F401", "I001"]
+"backend/config/settings/*" = ["F403", "F405"]
